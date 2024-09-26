@@ -2,6 +2,7 @@
 /* realizar una función que reciba un carácter numérico (char) y retorne un número entero (int)*/
 
 #include <stdio.h>
+void deCharAInt(char c);
 
 const estados[][28]={
     {2, 2,  7, 7,  1 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7, 7,7,7,7,7,7,7,7,7,7 , 7 , 7 , 7},
@@ -13,6 +14,7 @@ const estados[][28]={
     {7,7,	7,	7,	6,	6,	6,	6,	6,	6,	6,	6,	7,	7,	7,7,7,7, 7,7,7,7, 7,7,7, 7	,0,	7},
     {7,7,	7,	7,	7,	7,	7,	7,	7,	7,	7,	7,	7,	7,	7,7,7,7, 7,7,7,7, 7,7,7, 7,	7,	7}
 };
+
 
 const finales[] = {4,5,6};
 const cant_finales=3;
@@ -61,13 +63,14 @@ size_t posicion_alfabeto(char c){
 }
 
 
-int charToInt(char c){
-    
+
+void deCharAInt(char c){
     if(c < '0' || c > '9'){
         printf("El caracter ingresado no es numerico\n");
-        return 1;
+        return;
     }
 
     char d = c - '0';
     printf("El numero entero es: %d\n", d);
+    return;
 }
