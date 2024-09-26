@@ -13,9 +13,6 @@ int main()
     deCharAInt(c);
 }
 
-// Lo definidio en la funcion main debe ser una funcion aparte
-
-
 void deCharAInt(char c){
     if(c < '0' || c > '9'){
         printf("El caracter ingresado no es numerico\n");
