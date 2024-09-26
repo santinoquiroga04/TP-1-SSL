@@ -25,7 +25,7 @@ const cant_alfabeto = 27;
 int main(int argc, char **args) {
     printf("Hello world\n");
     char *segundoArgumento = args[1];
-<
+    
     if(automata(segundoArgumento) && segundoArgumento[0] != '\0'){
         printf("Cadena Valida");
     }
