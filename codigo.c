@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 void charAInt(char charNumero, int *numeroEntero);
 
 void contar_numeros(const char* input);
@@ -37,6 +39,8 @@ int main(int argc, char **args) {
         printf("Cadena No Valida");
     }
 
+    const char* expresion = "3+4*7+3-8/4";
+    printf("Resultado: %d\n", evaluar_expresion(expresion));
 
     return 0;
 }
@@ -171,4 +175,79 @@ int esDigito(char c) {
 void charAInt(char charNumero, int *numeroEntero) {
     // Convertir el carácter a un número entero y actualizar el valor al que apunta el puntero
     *numeroEntero = charNumero - '0';
+}
+
+// Punto 3
+
+
+void charAInt(char charNumero, int *numeroEntero);
+int operar(int num1, int num2, char operador);
+int precedencia(char operador);
+
+// Función principal para procesar la cadena y calcular el resultado
+int evaluar_expresion(const char* expresion) {
+    // Pilas para los números y los operadores
+    int numeros[100];
+    char operadores[100];
+    int top_num = -1, top_op = -1;
+    int i = 0;
+
+    while (expresion[i] != '\0') {
+        // Si es un espacio, lo saltamos
+        if (expresion[i] == ' ') {
+            i++;
+            continue;
+        }
+
+        // Si es un número, lo leemos y convertimos a entero
+        if (isdigit(expresion[i])) {
+            int num = 0;
+            while (isdigit(expresion[i])) {
+                num = num * 10 + (expresion[i] - '0');
+                i++;
+            }
+            numeros[++top_num] = num;  // Lo agregamos a la pila de números
+        } 
+        // Si es un operador
+        else if (expresion[i] == '+' || expresion[i] == '-' || expresion[i] == '*' || expresion[i] == '/') {
+            // Mientras la precedencia del operador en la cima de la pila sea mayor o igual al actual
+            while (top_op != -1 && precedencia(operadores[top_op]) >= precedencia(expresion[i])) {
+                int num2 = numeros[top_num--];
+                int num1 = numeros[top_num--];
+                char op = operadores[top_op--];
+                numeros[++top_num] = operar(num1, num2, op);  // Evaluar y almacenar el resultado
+            }
+            operadores[++top_op] = expresion[i];  // Agregar el operador a la pila
+            i++;
+        }
+    }
+
+    // Evaluar los operadores restantes en la pila
+    while (top_op != -1) {
+        int num2 = numeros[top_num--];
+        int num1 = numeros[top_num--];
+        char op = operadores[top_op--];
+        numeros[++top_num] = operar(num1, num2, op);
+    }
+
+    return numeros[top_num];  // El resultado final está en la cima de la pila de números
+}
+
+int operar(int num1, int num2, char operador) {
+    switch (operador) {
+        case '+': return num1 + num2;
+        case '-': return num1 - num2;
+        case '*': return num1 * num2;
+        case '/': return num1 / num2;
+        default: return 0;
+    }
+}
+
+int precedencia(char operador) {
+    if (operador == '*' || operador == '/') {
+        return 2;
+    } else if (operador == '+' || operador == '-') {
+        return 1;
+    }
+    return 0;
 }
