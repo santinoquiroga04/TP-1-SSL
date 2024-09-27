@@ -4,6 +4,11 @@
 #include <stdio.h>
 void deCharAInt(char c);
 
+void contar_numeros(const char* input);
+int es_decimal(const char* token);
+int es_octal(const char* token);
+int es_hexadecimal(const char* token);
+
 const estados[][28]={
     {2, 2,  7, 7,  1 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7, 7,7,7,7,7,7,7,7,7,7 , 7 , 7 , 7},
     {7, 7,  3, 3,  6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 7 , 7 , 7 , 7,7,7,7, 7,7,7,7, 7,7,7, 7 , 7},
@@ -23,11 +28,13 @@ const alfabeto[]={'+','-','X','x','0','1','2','3','4','5','6','7','8','9','a','b
 'A','B','C','D','E','F','#'};
 const cant_alfabeto = 27;
 int main(int argc, char **args) {
-    printf("Hello world\n");
     char *segundoArgumento = args[1];
-    
+
     if(automata(segundoArgumento) && segundoArgumento[0] != '\0'){
         printf("Cadena Valida");
+        contar_numeros(segundoArgumento);
+
+
     }
     else{
         printf("Cadena No Valida");
@@ -62,7 +69,81 @@ size_t posicion_alfabeto(char c){
       return i;
 }
 
+void contar_numeros(const char* input) {
+    int decimales = 0, octales = 0, hexadecimales = 0;
+    
+    // Usar strtok para dividir la cadena en partes usando '#' como delimitador
+    char* cadena = strdup(input);  // Copiamos la cadena para no modificar el original
+    char* token = strtok(cadena, "#");
+    
+    while (token != NULL) {
+        // Verificar si el token es un número decimal, octal o hexadecimal
+        if (es_hexadecimal(token)) {
+            hexadecimales++;
+        } else if (es_octal(token)) {
+            octales++;
+        } else if (es_decimal(token)) {
+            decimales++;
+        } else {
+            printf("%s es inválido\n", token);
+        }
 
+        // Obtener el siguiente token
+        token = strtok(NULL, "#");
+    }
+    
+    free(cadena); // Liberar la memoria usada por strdup
+
+    // Mostrar los resultados
+    printf("\nResumen:\n");
+    printf("Decimales: %d\n", decimales);
+    printf("Octales: %d\n", octales);
+    printf("Hexadecimales: %d\n", hexadecimales);
+}
+
+int es_decimal(const char* token) {
+    size_t i = 0;
+    
+    // Permitir un signo inicial
+    if (token[0] == '-' || token[0] == '+') {
+        i++;
+    }
+
+    // Verificar que todos los caracteres restantes sean dígitos
+    for (; token[i] != '\0'; i++) {
+        if (!isdigit(token[i])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int es_octal(const char* token) {
+    // Un número octal comienza con '0'
+    if (token[0] != '0') return 0;
+    
+    // Verificar que todos los caracteres restantes sean dígitos octales (0-7)
+    for (size_t i = 1; token[i] != '\0'; i++) {
+        if (token[i] < '0' || token[i] > '7') {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int es_hexadecimal(const char* token) {
+    // Un número hexadecimal comienza con "0x" o "0X"
+    if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X')) {
+        // Verificar que todos los caracteres restantes sean válidos en hexadecimal (0-9, a-f, A-F)
+        for (size_t i = 2; token[i] != '\0'; i++) {
+            if (!isxdigit(token[i])) {
+                return 0;
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
 
 void deCharAInt(char c){
     if(c < '0' || c > '9'){
