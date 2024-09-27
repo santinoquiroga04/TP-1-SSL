@@ -1,8 +1,5 @@
-// Punto 2
-/* realizar una función que reciba un carácter numérico (char) y retorne un número entero (int)*/
-
 #include <stdio.h>
-void deCharAInt(char c);
+void charAInt(char charNumero, int *numeroEntero);
 
 void contar_numeros(const char* input);
 int es_decimal(const char* token);
@@ -66,7 +63,7 @@ size_t posicion_alfabeto(char c){
         if(alfabeto[i] == c)
         {return i;}
     }
-      return i;
+    return i;
 }
 
 void contar_numeros(const char* input) {
@@ -145,17 +142,6 @@ int es_hexadecimal(const char* token) {
     return 0;
 }
 
-void deCharAInt(char c){
-    if(c < '0' || c > '9'){
-        printf("El caracter ingresado no es numerico\n");
-        return;
-    }
-
-    char d = c - '0';
-    printf("El numero entero es: %d\n", d);
-    return;
-}
-
 int esHexadecimal(char c) {
     // Verifica si es un número entre '0' y '9'
     if (c >= '0' && c <= '9') {
@@ -180,4 +166,9 @@ int esDigito(char c) {
     }
     // Si no está en el rango, no es un dígito
     return 0;
+}
+
+void charAInt(char charNumero, int *numeroEntero) {
+    // Convertir el carácter a un número entero y actualizar el valor al que apunta el puntero
+    *numeroEntero = charNumero - '0';
 }
