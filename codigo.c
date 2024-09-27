@@ -111,7 +111,7 @@ int es_decimal(const char* token) {
 
     // Verificar que todos los caracteres restantes sean dígitos
     for (; token[i] != '\0'; i++) {
-        if (!isdigit(token[i])) {
+        if (!esDigito(token[i])) {
             return 0;
         }
     }
@@ -136,7 +136,7 @@ int es_hexadecimal(const char* token) {
     if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X')) {
         // Verificar que todos los caracteres restantes sean válidos en hexadecimal (0-9, a-f, A-F)
         for (size_t i = 2; token[i] != '\0'; i++) {
-            if (!isxdigit(token[i])) {
+            if (!esHexadecimal(token[i])) {
                 return 0;
             }
         }
@@ -154,4 +154,30 @@ void deCharAInt(char c){
     char d = c - '0';
     printf("El numero entero es: %d\n", d);
     return;
+}
+
+int esHexadecimal(char c) {
+    // Verifica si es un número entre '0' y '9'
+    if (c >= '0' && c <= '9') {
+        return 1;
+    }
+    // Verifica si es una letra mayúscula entre 'A' y 'F'
+    if (c >= 'A' && c <= 'F') {
+        return 1;
+    }
+    // Verifica si es una letra minúscula entre 'a' y 'f'
+    if (c >= 'a' && c <= 'f') {
+        return 1;
+    }
+    // Si no cumple ninguna de las condiciones, no es un dígito hexadecimal
+    return 0;
+}
+
+int esDigito(char c) {
+    // Verifica si el carácter está entre '0' y '9'
+    if (c >= '0' && c <= '9') {
+        return 1;
+    }
+    // Si no está en el rango, no es un dígito
+    return 0;
 }
