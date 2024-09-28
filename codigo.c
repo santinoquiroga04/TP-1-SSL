@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 void charAInt(char charNumero, int *numeroEntero);
-
+int esDigito(char c);  // Prototipo de la función esDigito
+int esHexadecimal(char c);  // Prototipo de la función esHexadecimal
 void contar_numeros(const char* input);
 int es_decimal(const char* token);
 int es_octal(const char* token);
@@ -30,17 +31,15 @@ int main(int argc, char **args) {
     char *segundoArgumento = args[1];
 
     if(automata(segundoArgumento) && segundoArgumento[0] != '\0'){
-        printf("Cadena Valida");
+        printf("Cadena Valida para punto 1");
         contar_numeros(segundoArgumento);
-
-
     }
     else{
-        printf("Cadena No Valida");
+        printf("Cadena No Valida\n para punto 1");
     }
-
-    const char* expresion = "3+4*7+3-8/4";
-    printf("Resultado: %d\n", evaluar_expresion(expresion));
+    // const char* expresion = "3+4*7+3-8/4";
+    //aca deeberiamos validar si es una cadena valida o si no lo es ya que si no lo es da error
+    printf("Resultado para punto 3: %d\n", evaluar_expresion(segundoArgumento));
 
     return 0;
 }
