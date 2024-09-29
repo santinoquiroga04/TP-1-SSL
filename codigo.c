@@ -1,14 +1,30 @@
+// Punto 2
+/* realizar una función que reciba un carácter numérico (char) y retorne un número entero (int)*/
+
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
-void charAInt(char charNumero, int *numeroEntero);
+
+
+void deCharAInt(char c);
 
 void contar_numeros(const char* input);
 int es_decimal(const char* token);
 int es_octal(const char* token);
 int es_hexadecimal(const char* token);
 
-const estados[][28]={
+int automata(const char*);    // Declaración de automata
+int esHexadecimal(char c);      // Declaración de esHexadecimal
+int esDigito(char c);           // Declaración de esDigito
+
+int evaluar_expresion(const char* expresion);
+int operar(int num1, int num2, char operador);
+int precedencia(char operador);
+void charAInt(char charNumero, int *numeroEntero);
+
+
+
+const int estados[][28]={
     {2, 2,  7, 7,  1 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7, 7,7,7,7,7,7,7,7,7,7 , 7 , 7 , 7},
     {7, 7,  3, 3,  6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 7 , 7 , 7 , 7,7,7,7, 7,7,7,7, 7,7,7, 7 , 7},
     {7, 7 , 7, 7 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7,7,7,7, 7,7,7,7, 7,7,7,7, 7 , 7},
@@ -20,27 +36,44 @@ const estados[][28]={
 };
 
 
-const finales[] = {4,5,6};
-const cant_finales=3;
+const int finales[] = {4,5,6};
+const int cant_finales=3;
 
-const alfabeto[]={'+','-','X','x','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',
-'A','B','C','D','E','F','#'};
-const cant_alfabeto = 27;
+const char alfabeto[]={'+','-', '*', '/', 'X','x','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','A','B','C','D','E','F','#', ' '};
+const int cant_alfabeto = 28;
+
+
 int main(int argc, char **args) {
-    char *segundoArgumento = args[1];
 
+    if (argc < 2) {
+        printf("Uso: %s <expresion>\n", args[0]);
+        return 1;
+    }
+
+    char *entrada = args[1];
+
+    // Contar números en la entrada
+    contar_numeros(entrada);
+
+    // Evaluar la expresión y mostrar el resultado
+    int resultado = evaluar_expresion(entrada);
+
+/*
     if(automata(segundoArgumento) && segundoArgumento[0] != '\0'){
         printf("Cadena Valida");
         contar_numeros(segundoArgumento);
+    }
+*/
 
-
+    if(resultado != -1 ){
+        printf("Resultado: %d\n", resultado);
+    }
+    else if (strchr(entrada, '#')){
+        printf("No es una operacion\n");
     }
     else{
-        printf("Cadena No Valida");
+        printf("Cadena No Valida\n");
     }
-
-    const char* expresion = "3+4*7+3-8/4";
-    printf("Resultado: %d\n", evaluar_expresion(expresion));
 
     return 0;
 }
@@ -54,6 +87,12 @@ int automata(const char *input) {
     // Iterar sobre cada carácter del string
     for (size_t i = 0; input[i] != '\0'; i++) {
         c = input[i];
+
+        //saltar los espacios
+        if (c == ' '){
+            continue;
+        }
+
         if(posicion_alfabeto(c) == 27) return 0;
         estado = estados[estado][posicion_alfabeto(c)];
         if(estado == 7)return 0; 
@@ -67,7 +106,7 @@ size_t posicion_alfabeto(char c){
         if(alfabeto[i] == c)
         {return i;}
     }
-    return i;
+      return i;
 }
 
 void contar_numeros(const char* input) {
@@ -86,7 +125,7 @@ void contar_numeros(const char* input) {
         } else if (es_decimal(token)) {
             decimales++;
         } else {
-            printf("%s es inválido\n", token);
+            printf("%s es una operacion\n", token);
         }
 
         // Obtener el siguiente token
@@ -99,10 +138,11 @@ void contar_numeros(const char* input) {
     printf("\nResumen:\n");
     printf("Decimales: %d\n", decimales);
     printf("Octales: %d\n", octales);
-    printf("Hexadecimales: %d\n", hexadecimales);
+    printf("Hexadecimales: %d\n\n", hexadecimales);
 }
 
 int es_decimal(const char* token) {
+/*
     size_t i = 0;
     
     // Permitir un signo inicial
@@ -110,13 +150,17 @@ int es_decimal(const char* token) {
         i++;
     }
 
+    return esDigito(token + i);
+    */
+
     // Verificar que todos los caracteres restantes sean dígitos
-    for (; token[i] != '\0'; i++) {
-        if (!esDigito(token[i])) {
-            return 0;
+    for (size_t i = 0; token[i] != '\0'; i++) {
+        if (!esDigito(token[i])) {  // Accede al carácter en lugar de un puntero
+            return 0;   // No es un número decimal
         }
     }
-    return 1;
+    return 1;    // Es un número decimal
+    
 }
 
 int es_octal(const char* token) {
@@ -133,17 +177,31 @@ int es_octal(const char* token) {
 }
 
 int es_hexadecimal(const char* token) {
+
     // Un número hexadecimal comienza con "0x" o "0X"
-    if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X')) {
-        // Verificar que todos los caracteres restantes sean válidos en hexadecimal (0-9, a-f, A-F)
-        for (size_t i = 2; token[i] != '\0'; i++) {
-            if (!esHexadecimal(token[i])) {
-                return 0;
-            }
-        }
-        return 1;
+    if (token[0] != '0' || token[1] != 'x' && token[1] != 'X') {
+        return 0; // No tiene el formato de número hexadecimal
     }
-    return 0;
+    
+    // Verificar que todos los caracteres restantes sean válidos en hexadecimal (0-9, a-f, A-F)
+    for (size_t i = 2; token[i] != '\0'; i++) {
+        if (!esHexadecimal(token[i])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+    
+
+void deCharAInt(char c){
+    if(c < '0' || c > '9'){
+        printf("El caracter ingresado no es numerico\n");
+        return;
+    }
+
+    char d = c - '0';
+    printf("El numero entero es: %d\n", d);
+    return;
 }
 
 int esHexadecimal(char c) {
@@ -164,25 +222,27 @@ int esHexadecimal(char c) {
 }
 
 int esDigito(char c) {
-    // Verifica si el carácter está entre '0' y '9'
+    
+// Verifica si el carácter está entre '0' y '9'
+
+    return c >= '0' && c <= '9'; 
+    
+    /*
     if (c >= '0' && c <= '9') {
         return 1;
     }
     // Si no está en el rango, no es un dígito
     return 0;
+    */
 }
+
+
+// Punto 3
 
 void charAInt(char charNumero, int *numeroEntero) {
     // Convertir el carácter a un número entero y actualizar el valor al que apunta el puntero
     *numeroEntero = charNumero - '0';
 }
-
-// Punto 3
-
-
-void charAInt(char charNumero, int *numeroEntero);
-int operar(int num1, int num2, char operador);
-int precedencia(char operador);
 
 // Función principal para procesar la cadena y calcular el resultado
 int evaluar_expresion(const char* expresion) {
@@ -200,9 +260,9 @@ int evaluar_expresion(const char* expresion) {
         }
 
         // Si es un número, lo leemos y convertimos a entero
-        if (isdigit(expresion[i])) {
+        if (esDigito(expresion[i])) {
             int num = 0;
-            while (isdigit(expresion[i])) {
+            while (esDigito(expresion[i])) {
                 num = num * 10 + (expresion[i] - '0');
                 i++;
             }
@@ -219,6 +279,8 @@ int evaluar_expresion(const char* expresion) {
             }
             operadores[++top_op] = expresion[i];  // Agregar el operador a la pila
             i++;
+        } else{
+            return -1; //Caracter inválido encontrado
         }
     }
 
