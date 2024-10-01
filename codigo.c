@@ -8,6 +8,7 @@ void contar_numeros(const char* input);
 int es_decimal(const char* token);
 int es_octal(const char* token);
 int es_hexadecimal(const char* token);
+int es_operacion_valida(const char *cadena) ;
 
 const estados[][28]={
     {2, 2,  7, 7,  1 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7, 7,7,7,7,7,7,7,7,7,7 , 7 , 7 , 7},
@@ -29,7 +30,7 @@ const alfabeto[]={'+','-','X','x','0','1','2','3','4','5','6','7','8','9','a','b
 const cant_alfabeto = 27;
 int main(int argc, char **args) {
     char *segundoArgumento = args[1];
-
+    // punto 1
     if(automata(segundoArgumento) && segundoArgumento[0] != '\0'){
         printf("Cadena Valida para punto 1");
         contar_numeros(segundoArgumento);
@@ -37,9 +38,14 @@ int main(int argc, char **args) {
     else{
         printf("Cadena No Valida para punto 1\n");
     }
-    // const char* expresion = "3+4*7+3-8/4";
-    //aca deeberiamos validar si es una cadena valida o si no lo es ya que si no lo es da error
-   // printf("Resultado para punto 3: %d\n", evaluar_expresion(segundoArgumento));
+
+    //punto 3
+    if (es_operacion_valida(segundoArgumento)) {
+        printf("La cadena es una operacion valida.\n");
+        printf("Resultado para punto 3: %d\n", evaluar_expresion(segundoArgumento));  
+    } else {
+        printf("La cadena no es una operacion valida.\n");
+    }
 
     return 0;
 }
@@ -50,8 +56,9 @@ int automata(const char *input) {
     size_t estado = 0;
     char c;
     
-    // Iterar sobre cada carácter del string
-    for (size_t i = 0; input[i] != '\0'; i++) {
+    // Iterar sobre cada carácter del stringS
+    size_t i;
+    for ( i = 0; input[i] != '\0'; i++) {
         c = input[i];
         if(posicion_alfabeto(c) == 27) return 0;
         estado = estados[estado][posicion_alfabeto(c)];
@@ -110,7 +117,7 @@ int es_decimal(const char* token) {
     }
 
     // Verificar que todos los caracteres restantes sean dígitos
-    for (; token[i] != '\0'; i++) {
+    for (i; token[i] != '\0'; i++) {
         if (!esDigito(token[i])) {
             return 0;
         }
@@ -170,7 +177,7 @@ int esDigito(char c) {
     // Si no está en el rango, no es un dígito
     return 0;
 }
-
+//punto 2
 void charAInt(char charNumero, int *numeroEntero) {
     // Convertir el carácter a un número entero y actualizar el valor al que apunta el puntero
     *numeroEntero = charNumero - '0';
@@ -249,4 +256,77 @@ int precedencia(char operador) {
         return 1;
     }
     return 0;
+}
+
+int es_operacion_valida(const char *cadena) {
+       int i = 0;
+    int ultimo_era_digito = 0;  // Para saber si el último carácter era un dígito
+    int tiene_operador = 0;     // Para asegurarnos de que haya al menos un operador
+    int puede_ser_signo = 1;    // Permitir que el primer caracter sea un signo
+
+    // Recorrer la cadena caricter por carácter
+    while (cadena[i] != '\0') {
+        char c = cadena[i];
+
+        // Si el carácter es un espacio, lo ignoramos
+        if (c == ' ') {
+            i++;
+            continue;
+        }
+
+        // Verificar si es un digito
+        if (isdigit(c)) {
+            ultimo_era_digito = 1;  // Marcar que hemos encontrado un digito
+            puede_ser_signo = 0;    // Una vez encontrado un digito, el siguiente no puede ser un signo
+        } 
+        // Verificar si es un operador valido (+, -, *, /)
+        else if (c == '+' || c == '-' || c == '*' || c == '/') {
+            tiene_operador = 1;  // Hemos encontrado un operador
+
+            // Verificar si el operador es `*` o `/`, ya que no pueden estar al principio ni después de otro operador
+            if (c == '*' || c == '/') {
+                if (!ultimo_era_digito) {
+                    printf("Error: operador '%c' no puede seguir a otro operador o estar al principio para el punto 3.\n", c);
+                    return 0;
+                }
+            }
+
+            // Si es un operador `+` o `-`, puede estar al principio o después de un operador
+            if ((c == '+' || c == '-') && puede_ser_signo) {
+                ultimo_era_digito = 0;  // El signo puede estar al principio o después de un operador
+                puede_ser_signo = 0;    // ya procesamoos el primer signo
+            } 
+            // Si no es el primer carácter, validar la secuencia de operadorescv
+            else if (!ultimo_era_digito) {
+                printf("Error: operador '%c' no puede seguir a otro operador para el punto 3.\n", c);
+                return 0;
+            }
+
+            // Despues de un operador, esperamos un dígito o un signo
+            ultimo_era_digito = 0;
+            puede_ser_signo = 1;
+        } 
+        // Si no es ni un dígito ni un operador, es inválido
+        else {
+            printf("Error: caracter invalido '%c' encontrado en la cadena para el punto 3.\n", c);
+            return 0;
+        }
+
+        i++;
+    }
+
+    // Al final de la cadena, el ultimo carácter debe ser un dígito
+    if (!ultimo_era_digito) {
+        printf("Error: la cadena no puede terminar con un operador para el punto 3.\n");
+        return 0;
+    }
+
+    // Si no hay operadores, no es una operación válida
+    if (!tiene_operador) {
+        printf("Error: la cadena no contiene operadores para el punto 3.\n");
+        return 0;
+    }
+
+    // Si pasa todas las validaciones, la cadena es valida
+    return 1;
 }
