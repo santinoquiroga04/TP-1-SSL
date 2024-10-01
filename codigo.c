@@ -128,9 +128,9 @@ int es_decimal(const char* token) {
 int es_octal(const char* token) {
     // Un número octal comienza con '0'
     if (token[0] != '0') return 0;
-    
+    size_t i;
     // Verificar que todos los caracteres restantes sean dígitos octales (0-7)
-    for (size_t i = 1; token[i] != '\0'; i++) {
+    for ( i = 1; token[i] != '\0'; i++) {
         if (token[i] < '0' || token[i] > '7') {
             return 0;
         }
@@ -142,7 +142,8 @@ int es_hexadecimal(const char* token) {
     // Un número hexadecimal comienza con "0x" o "0X"
     if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X')) {
         // Verificar que todos los caracteres restantes sean válidos en hexadecimal (0-9, a-f, A-F)
-        for (size_t i = 2; token[i] != '\0'; i++) {
+        size_t i;
+        for ( i = 2; token[i] != '\0'; i++) {
             if (!esHexadecimal(token[i])) {
                 return 0;
             }
