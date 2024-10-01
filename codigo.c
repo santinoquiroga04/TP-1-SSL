@@ -206,9 +206,9 @@ int evaluar_expresion(const char* expresion) {
         }
 
         // Si es un número, lo leemos y convertimos a entero
-        if (isdigit(expresion[i])) {
+        if (esDigito(expresion[i])) {
             int num = 0;
-            while (isdigit(expresion[i])) {
+            while (esDigito(expresion[i])) {
                 num = num * 10 + (expresion[i] - '0');
                 i++;
             }
@@ -275,7 +275,7 @@ int es_operacion_valida(const char *cadena) {
         }
 
         // Verificar si es un digito
-        if (isdigit(c)) {
+        if (esDigito(c)) {
             ultimo_era_digito = 1;  // Marcar que hemos encontrado un digito
             puede_ser_signo = 0;    // Una vez encontrado un digito, el siguiente no puede ser un signo
         } 
