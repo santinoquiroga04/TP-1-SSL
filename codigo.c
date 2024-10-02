@@ -36,6 +36,7 @@ int alfabeto[27]={'+','-','X','x','0','1','2','3','4','5','6','7','8','9','a','b
 int cant_alfabeto = 27;
 int main(int argc, char **args) {
     char *segundoArgumento = args[1];
+    const char *expresion = "3+4*7+3-8/4";
     // punto 1
     if(automata(segundoArgumento) && segundoArgumento[0] != '\0'){
         printf("Cadena Valida para punto 1");
@@ -46,12 +47,7 @@ int main(int argc, char **args) {
     }
 
     //punto 3
-    if (es_operacion_valida(segundoArgumento)) {
-        printf("La cadena es una operacion valida.\n");
-        printf("Resultado para punto 3: %d\n", evaluar_expresion(segundoArgumento));  
-    } else {
-        printf("La cadena no es una operacion valida.\n");
-    }
+    printf("Resultado para punto 3: %d\n", evaluar_expresion(expresion)); 
 
     return 0;
 }
@@ -278,8 +274,12 @@ int evaluar_expresion(const char* expresion) {
     }
 
     return numeros[top_num];  // El resultado final está en la cima de la pila de números
+	}
+	else {
+		printf("La cadena no es una operacion valida.\n");
+	}
+    
 }
-
 int operar(int num1, int num2, char operador) {
     switch (operador) {
         case '+': return num1 + num2;
