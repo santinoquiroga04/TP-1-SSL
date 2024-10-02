@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 void charAInt(char charNumero, int *numeroEntero);
 int esDigito(char c);  // Prototipo de la función esDigito
 int esHexadecimal(char c);  // Prototipo de la función esHexadecimal
@@ -9,8 +10,13 @@ int es_decimal(const char* token);
 int es_octal(const char* token);
 int es_hexadecimal(const char* token);
 int es_operacion_valida(const char *cadena) ;
+char* next_token(char* str, const char delim,char** context) ;
+void charAInt(char charNumero, int *numeroEntero);
+int operar(int num1, int num2, char operador);
+int precedencia(char operador);
+unsigned int posicion_alfabeto(char);
 
-const estados[][28]={
+int estados[8][28]={
     {2, 2,  7, 7,  1 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7, 7,7,7,7,7,7,7,7,7,7 , 7 , 7 , 7},
     {7, 7,  3, 3,  6 , 6 , 6 , 6 , 6 , 6 , 6 , 6 , 7 , 7 , 7 , 7,7,7,7, 7,7,7,7, 7,7,7, 7 , 7},
     {7, 7 , 7, 7 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 7,7,7,7, 7,7,7,7, 7,7,7,7, 7 , 7},
@@ -22,12 +28,12 @@ const estados[][28]={
 };
 
 
-const finales[] = {4,5,6};
-const cant_finales=3;
+int finales[3] = {4,5,6};
+int cant_finales=3;
 
-const alfabeto[]={'+','-','X','x','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',
+int alfabeto[27]={'+','-','X','x','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',
 'A','B','C','D','E','F','#'};
-const cant_alfabeto = 27;
+int cant_alfabeto = 27;
 int main(int argc, char **args) {
     char *segundoArgumento = args[1];
     // punto 1
@@ -50,14 +56,13 @@ int main(int argc, char **args) {
     return 0;
 }
 
-size_t posicion_alfabeto(char);
 
 int automata(const char *input) {
-    size_t estado = 0;
+    int estado = 0;
     char c;
     
     // Iterar sobre cada carácter del stringS
-    size_t i;
+    int i;
     for ( i = 0; input[i] != '\0'; i++) {
         c = input[i];
         if(posicion_alfabeto(c) == 27) return 0;
@@ -67,8 +72,8 @@ int automata(const char *input) {
     return 1;
 }
 
-size_t posicion_alfabeto(char c){
-    size_t i;
+unsigned int posicion_alfabeto(char c){
+    int i;
     for(i = 0; i< cant_alfabeto;i++){
         if(alfabeto[i] == c)
         {return i;}
@@ -78,10 +83,17 @@ size_t posicion_alfabeto(char c){
 
 void contar_numeros(const char* input) {
     int decimales = 0, octales = 0, hexadecimales = 0;
+ char* context = NULL;  //
+    // Hacer una copia de la cadena manualmente
+    char* cadena = (char*)malloc(strlen(input) + 1);  // Asignar memoria para la copia
+    if (cadena == NULL) {
+        printf("Error: No se pudo asignar memoria.\n");
+        return;
+    }
+    strcpy(cadena, input);  // Copiar el contenido de `input`
     
-    // Usar strtok para dividir la cadena en partes usando '#' como delimitador
-    char* cadena = strdup(input);  // Copiamos la cadena para no modificar el original
-    char* token = strtok(cadena, "#");
+    // Usar la función personalizada para dividir la cadena en tokens
+    char* token = next_token(cadena, '#',&context);
     
     while (token != NULL) {
         // Verificar si el token es un número decimal, octal o hexadecimal
@@ -96,10 +108,10 @@ void contar_numeros(const char* input) {
         }
 
         // Obtener el siguiente token
-        token = strtok(NULL, "#");
+        token = next_token(NULL, '#',&context);
     }
-    
-    free(cadena); // Liberar la memoria usada por strdup
+
+    free(cadena);  // Liberar la memoria usada por la cadena copiada
 
     // Mostrar los resultados
     printf("\nResumen:\n");
@@ -109,7 +121,7 @@ void contar_numeros(const char* input) {
 }
 
 int es_decimal(const char* token) {
-    size_t i = 0;
+    int i = 0;
     
     // Permitir un signo inicial
     if (token[0] == '-' || token[0] == '+') {
@@ -117,7 +129,7 @@ int es_decimal(const char* token) {
     }
 
     // Verificar que todos los caracteres restantes sean dígitos
-    for (i; token[i] != '\0'; i++) {
+    for (; token[i] != '\0'; i++) {
         if (!esDigito(token[i])) {
             return 0;
         }
@@ -126,9 +138,9 @@ int es_decimal(const char* token) {
 }
 
 int es_octal(const char* token) {
+        unsigned int i;
     // Un número octal comienza con '0'
     if (token[0] != '0') return 0;
-    size_t i;
     // Verificar que todos los caracteres restantes sean dígitos octales (0-7)
     for ( i = 1; token[i] != '\0'; i++) {
         if (token[i] < '0' || token[i] > '7') {
@@ -139,10 +151,10 @@ int es_octal(const char* token) {
 }
 
 int es_hexadecimal(const char* token) {
+      unsigned int i;
     // Un número hexadecimal comienza con "0x" o "0X"
     if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X')) {
         // Verificar que todos los caracteres restantes sean válidos en hexadecimal (0-9, a-f, A-F)
-        size_t i;
         for ( i = 2; token[i] != '\0'; i++) {
             if (!esHexadecimal(token[i])) {
                 return 0;
@@ -151,6 +163,34 @@ int es_hexadecimal(const char* token) {
         return 1;
     }
     return 0;
+}
+
+char* next_token(char* str, const char delim, char** context) {
+    char* token;
+
+    // Si se proporciona una nueva cadena, inicializa el contexto
+    if (str != NULL) {
+        *context = str;
+    } else if (*context == NULL) {
+        return NULL;  // No hay más tokens
+    }
+
+    // Buscar el delimitador
+    char* end = *context;
+    while (*end != '\0' && *end != delim) {
+        end++;
+    }
+
+    if (*end == '\0') {
+        token = *context;  // Último token
+        *context = NULL;   // Fin de la cadena
+        return token;
+    }
+
+    *end = '\0';           // Terminar el token actual
+    token = *context;     // Guardar el token
+    *context = end + 1;   // Mover el puntero al siguiente token
+    return token;
 }
 
 int esHexadecimal(char c) {
@@ -187,9 +227,6 @@ void charAInt(char charNumero, int *numeroEntero) {
 // Punto 3
 
 
-void charAInt(char charNumero, int *numeroEntero);
-int operar(int num1, int num2, char operador);
-int precedencia(char operador);
 
 // Función principal para procesar la cadena y calcular el resultado
 int evaluar_expresion(const char* expresion) {
@@ -198,7 +235,10 @@ int evaluar_expresion(const char* expresion) {
     char operadores[100];
     int top_num = -1, top_op = -1;
     int i = 0;
-
+    int num2 ;
+        int num1 ;
+        char op ;
+        int num;
     while (expresion[i] != '\0') {
         // Si es un espacio, lo saltamos
         if (expresion[i] == ' ') {
@@ -208,7 +248,7 @@ int evaluar_expresion(const char* expresion) {
 
         // Si es un número, lo leemos y convertimos a entero
         if (esDigito(expresion[i])) {
-            int num = 0;
+            num = 0;
             while (esDigito(expresion[i])) {
                 num = num * 10 + (expresion[i] - '0');
                 i++;
@@ -219,9 +259,9 @@ int evaluar_expresion(const char* expresion) {
         else if (expresion[i] == '+' || expresion[i] == '-' || expresion[i] == '*' || expresion[i] == '/') {
             // Mientras la precedencia del operador en la cima de la pila sea mayor o igual al actual
             while (top_op != -1 && precedencia(operadores[top_op]) >= precedencia(expresion[i])) {
-                int num2 = numeros[top_num--];
-                int num1 = numeros[top_num--];
-                char op = operadores[top_op--];
+                 num2 = numeros[top_num--];
+                 num1 = numeros[top_num--];
+                 op = operadores[top_op--];
                 numeros[++top_num] = operar(num1, num2, op);  // Evaluar y almacenar el resultado
             }
             operadores[++top_op] = expresion[i];  // Agregar el operador a la pila
@@ -231,9 +271,9 @@ int evaluar_expresion(const char* expresion) {
 
     // Evaluar los operadores restantes en la pila
     while (top_op != -1) {
-        int num2 = numeros[top_num--];
-        int num1 = numeros[top_num--];
-        char op = operadores[top_op--];
+         num2 = numeros[top_num--];
+         num1 = numeros[top_num--];
+         op = operadores[top_op--];
         numeros[++top_num] = operar(num1, num2, op);
     }
 
